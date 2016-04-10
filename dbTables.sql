@@ -15,11 +15,11 @@ Create Table Employee(
     skill_level NUMERIC(2)
 );
 Create Table Request(
-    ip NUMERIC(45) NOT NULL PRIMARY KEY,
+    ip VARCHAR(45) NOT NULL PRIMARY KEY,
     created_at TIMESTAMP
 );
 Create Table BlockedIP(
-    ip NUMERIC(45) NOT NULL PRIMARY KEY,
+    ip VARCHAR(45) NOT NULL PRIMARY KEY,
     blocked_at TIMESTAMP
 );
 
