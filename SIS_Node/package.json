@@ -1,0 +1,17 @@
+{
+	"name": "SIS.io",
+	"version": "0.0.6",
+	"description": "SIS.io",
+	"main":"server.js",
+	"author":{
+		"name":"SWLA",
+		"email":""
+	},
+	"scripts":{
+		"start":"node main.js"
+	},
+	"dependencies":{
+		"express":"*",
+		"mysql":"*"
+	}
+}
