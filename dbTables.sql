@@ -1,33 +1,22 @@
-Create Table Customer(
+Create Table Ticket(
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    phone_number NUMERIC(10),
+    ip VARCHAR(45) NOT NULL,	
+    created_at TIMESTAMP,
+    tutor_id VARCHAR(36) NOT NULL, FOREIGN KEY(tutor_id) REFERENCES Tutor(id),
+    status VARCHAR(20) NOT NULL
+);
+Create Table Tutor(
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     f_name VARCHAR(40),
-    l_name VARCHAR(40),
-    street VARCHAR(100),
-    city VARCHAR(100),
-    state VARCHAR(100),
-    zip VARCHAR(100),
-    phone_number NUMERIC(10)  
+    l_name VARCHAR(40)
 );
-Create Table Employee(
+Create Table Issue(
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    f_name VARCHAR(40),
-    l_name VARCHAR(40),
-    skill_level NUMERIC(2)
-);
-Create Table Request(
-    ip VARCHAR(45) NOT NULL PRIMARY KEY,
-    created_at TIMESTAMP
+    category VARCHAR(100) NOT NULL,
+    description VARCHAR(1000)
 );
 Create Table BlockedIP(
     ip VARCHAR(45) NOT NULL PRIMARY KEY,
     blocked_at TIMESTAMP
-);
-
-Create Table Issue(
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    customer_id VARCHAR(36) NOT NULL, FOREIGN KEY(customer_id) REFERENCES Customer(id),
-    employee_id VARCHAR(36) NOT NULL, FOREIGN KEY(employee_id) REFERENCES Employee(id),
-    difficulty_score NUMERIC(2),
-    description VARCHAR(1000),
-    status VARCHAR(10)
 );
