@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang= "en-us">
+<head>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script type="text/javascript" src= "*/script.js"></script>
+	<link rel="stylesheet" type="text/css" href="*/style.css">
+</head>
+<body ng-app = "app" ng-controller="ctrl">
+	<div class = "container-fluid">
+		<div class = "row-fluid center" id = "welcome">
+			<div ng-show="welcomeMsg" class = "content">
+				<div class = "row centercontents">
+					<h1>Welcome!</h1><br>
+					<h3>Here at (working title) we strive to bring you the easiest experience possible. We are here to help, click the button below to get started</h3><br>
+					<div ng-click="welcomeMsg = false" class = "btn btn-primary">
+						<h1>Go!</h1>
+					</div>
+				</div>
+			</div>
+			<div class = "container-fluid" ng-show="!welcomeMsg && !tutorList" class = "content">
+				<div class = "row">
+					<div class= "listBox col-md-6">
+						<h1>Select from the options below:</h1>
+						<ul ng-repeat = "select in optionList">
+							<li>
+								<div class = "btn btn-primary" ng-click = "addToList(select, $index)">
+									{{select.title}}
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class = "listBox col-md-6">
+						<h1>You Have Selected:</h1>
+
+						<ul ng-repeat = "selected in selectedList">
+							<li>
+								<div class = "btn btn-primary">
+									{{selected.title}}
+									<span  ng-click = "removeFromSelected(selected, $index)">
+										<label class = "label label-danger">X</label>
+									</span>
+								</div>
+							</li>
+						</ul>
+						<h4>Remove items from this list by clicking the X</h4>
+					</div>
+				</div>
+				<div>
+					<h1>OR you can type something in the box and click "Add"</h1>
+					<input type = "text" ng-model = "input">
+					<button class = "btn btn-primary" ng-click = "addToOptions()">Add</button>
+				</div>
+				<div>
+					<h1>Then when you are done, Click the "Done" Button</h1>
+					<button class = "btn btn-primary" ng-click = "tutorList = true"><h1>Done</h1></button>
+
+				</div>
+
+			</div>
+			<div class = "container-fluid" ng-show = "tutorList">
+				<h1>Help us Help you(optional) add any additional information here!:</h1>
+      			<div ng-repeat = "item in selectedList" class = "row">
+        			<div class = "col-md-8 col-md-offset-2">
+          				<div class= "panel panel-primary">
+            				<div class = "panel-heading">{{item.title}}</div>
+            				<div class = "panel-body">
+              					<h4>Details:</h4><br>
+              					<ul ng-repeat = "question in item.addition">
+                					<li>
+                						<div class = "btn btn-primary" >
+											{{question}}
+										</div>
+                					</li>
+              					</ul>
+            				</div>
+            				<div class = "panel-footer">
+              					<input type = "text">
+              					<button class = "btn btn-primary"> Click to add</button>
+            				</div>
+            
+          				</div>
+        			</div>
+      			</div>
+      			<button class = "btn btn-primary" ng-click = "tutorList = false"><h4>Wait! I need to add more!</h4></button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
