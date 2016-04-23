@@ -1,7 +1,12 @@
 var connection = require("./swlaDb.js");
 var uuid = require('node-uuid');
 
-function Ticket(id,phone_number,ip,created_at,tutor_id,ticketStatus){
+function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus){
+	if(request==null){
+		this.href = "";
+	}else{
+		this.href  = request.get('host')+request.originalUrl+"/"+id;
+	}
     this.id  = id;
     this.phone_number  = phone_number;
     this.ip  = ip;
@@ -10,10 +15,10 @@ function Ticket(id,phone_number,ip,created_at,tutor_id,ticketStatus){
     this.ticketStatus  = ticketStatus;
 }
 
-Ticket.prototype.load = function(response){
-	loadData(this,response);
+Ticket.prototype.load = function(request,response){
+	loadData(this,request,response);
 }
-Ticket.prototype.delete = function(response){
+Ticket.prototype.delete = function(request,response){
 	var values = {
 		id:this.id
 	};
@@ -27,7 +32,7 @@ Ticket.prototype.delete = function(response){
 	});
 }
 
-function loadData(ticket,response){
+function loadData(ticket,request,response){
 	var values = {
 		id:ticket.id
 	};
@@ -37,6 +42,7 @@ function loadData(ticket,response){
 			response.status(404).send("Not Found");
 		  }
 		var ticket = new Ticket(
+			request,
 			rows[0].id,
 			rows[0].phone_number,
 			rows[0].ip,
@@ -79,10 +85,10 @@ Ticket.prototype.create = function(request,response){
 	});
 	response.status(201);
 	response.location(request.get('host')+request.originalUrl+"/"+this.id);
-	loadData(this,response);
+	loadData(this,request,response);
 }
 
-Ticket.prototype.update = function(){
+Ticket.prototype.update = function(request,response){
 	var params = [];
 	var queryString = 'update Ticket Set ';
 	var updateFields =[];
@@ -118,14 +124,17 @@ Ticket.prototype.update = function(){
 	params.push(this.id);
 	console.log(params);
 	var query = connection.query(queryString,params,function(err) {
-		if (!err)
-			return;
-		else
+		if (err){
+			response.status(500).send("Fatal Error");
 			console.log(err);
+		}
+		else{		
+			response.send("Update Successful");
+		}
 	});
 }
 
-Ticket.prototype.loadAll = function(response){
+Ticket.prototype.loadAll = function(request,response){
 	connection.query('Select * from Ticket', function(err, rows) {
 		if (err){
 			console.log(err);
@@ -133,6 +142,7 @@ Ticket.prototype.loadAll = function(response){
 			var tickets = [];
 			for(var i =0;i<rows.length;i++){
 				var ticket = new Ticket(
+					request,
 					rows[i].id,
 					rows[i].phone_number,
 					rows[i].ip,
