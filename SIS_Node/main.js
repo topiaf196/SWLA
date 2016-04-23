@@ -1,5 +1,6 @@
 var express = require("express");
 var app = express();
+app.use(require('body-parser').json());
 var ticketController = require("./TicketController")(app);
 
 app.get('/',function(request,response){

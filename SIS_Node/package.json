@@ -12,6 +12,8 @@
 	},
 	"dependencies":{
 		"express":"*",
-		"mysql":"*"
+		"mysql":"*",
+		"body-parser":"*",
+		"node-uuid":"*"
 	}
 }
