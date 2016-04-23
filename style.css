@@ -1,0 +1,66 @@
+/*
+	#AA7039
+	#FFD3AA
+	#D49E6A
+	#804915
+	#552900
+*/
+
+html, body {
+	background: #AA7039;
+	margin: 0;
+	padding: 0 0;
+}
+
+.container-fluid {
+	height: 100%;
+	display: table;
+	width: 100%;
+	padding-right: 0;
+	padding-left: 0;
+}
+.row-fluid {
+	height: 100%;
+	display: table-cell;
+	vertical-align: middle;
+	width: 100%;
+}
+
+#welcome {
+
+}
+.center {
+	float: none;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.centercontents {
+	text-align: center;
+}
+.content {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	border: solid 5px;
+	border-color: #FFD3AA;
+	word-wrap: break-word;
+}
+h1, h3 {
+	color: #552900;
+	padding: 15px;
+}
+.btn-primary {
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+	background-color: #FFD3AA;
+	border-color: #D49E6A;
+}
+.btn-primary:hover {
+	background-color: #FFD3AA;
+	border-color: #D49E6A;
+}
+.listBox {
+	border-color: #D49E6A;
+}
