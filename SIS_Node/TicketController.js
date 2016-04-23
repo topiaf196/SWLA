@@ -3,16 +3,13 @@ var Ticket = require("./Ticket");
 
 module.exports = function(app) {
 	app.get('/tickets/:id*',function(request,response){
-		var ticket = new Ticket().load(request.params.id);
-		if(ticket==null){
-			response.status(404).send("Not Found");
-		}else{
-			response.send(ticket.load(request.params.id));
-		}
+		new Ticket(request.params.id).load(response);
+	});
+	app.delete('/tickets/:id*',function(request,response){
+		new Ticket(request.params.id).delete(response);
 	});
 	app.get('/tickets',function(request,response){
-		var ticket = new Ticket();
-		response.send(ticket.loadAll());
+		var tickets = new Ticket().loadAll(response);
 	});
 	app.post('/tickets',function(request,response){
 		var ticket = new Ticket(
@@ -23,8 +20,7 @@ module.exports = function(app) {
 			request.body.tutor_id,
 			request.body.ticketStatus
 		);
-		ticket.create();
-		response.send(ticket);
+		ticket.create(request,response);
 	});
 	app.post('/tickets/:id*',function(request,response){
 		var ticket = new Ticket(

@@ -10,19 +10,53 @@ function Ticket(id,phone_number,ip,created_at,tutor_id,ticketStatus){
     this.ticketStatus  = ticketStatus;
 }
 
-Ticket.prototype.load = function(){
-	connection.query('SELECT * from Ticket', function(err, rows, fields) {
-	  if (!err)
-		return rows;
-	  else
+Ticket.prototype.load = function(response){
+	loadData(this,response);
+}
+Ticket.prototype.delete = function(response){
+	var values = {
+		id:this.id
+	};
+	var query = connection.query('Delete from Ticket where ?',values, function(err, rows) {		
+	  if (err){
+		response.status(500).send("Fatal Error");
 		console.log(err);
+	  }else{
+		  response.send("Deleted Succesfully");
+	  }
 	});
 }
 
-Ticket.prototype.create = function(){
+function loadData(ticket,response){
 	var values = {
-		id:uuid.v1(),
-	}
+		id:ticket.id
+	};
+	var query = connection.query('SELECT * from Ticket where ?',values, function(err, rows) {
+	  if (!err){
+		  if(rows.length==0){
+			response.status(404).send("Not Found");
+		  }
+		var ticket = new Ticket(
+			rows[0].id,
+			rows[0].phone_number,
+			rows[0].ip,
+			rows[0].created_at,
+			rows[0].tutor_id,
+			rows[0].status				
+		)
+		response.send(ticket);
+	  }else{
+			response.status(500).send("Fatal Error");
+			console.log(err);
+	  }
+	});
+}
+
+Ticket.prototype.create = function(request,response){
+		this.id = uuid.v1();
+	var values = {
+		id:this.id
+	};
 	if(this.phone_number!=null){
 		values['phone_number'] = this.phone_number;
 	}
@@ -37,13 +71,15 @@ Ticket.prototype.create = function(){
 	}else{
 		values['status'] = this.ticketStatus;
 	}
-	var query = connection.query('Insert Into Ticket Set ?',values, function(err) {
-		if (!err)
-			return;
-		else
+	var query = connection.query('Insert Into Ticket Set created_at = now(), ?',values, function(err) {
+		if (err){
+			response.status(500).send("Fatal Error");
 			console.log(err);
+		}
 	});
-	console.log(query.sql);
+	response.status(201);
+	response.location(request.get('host')+request.originalUrl+"/"+this.id);
+	loadData(this,response);
 }
 
 Ticket.prototype.update = function(){
@@ -87,16 +123,27 @@ Ticket.prototype.update = function(){
 		else
 			console.log(err);
 	});
-	console.log(query.sql);
 }
 
-Ticket.prototype.loadAll = function(){
-	connection.query('SELECT * from Ticket', function(err, rows, fields) {
-	  if (err){
-		console.log(err);
-	  }else{
-		console.log(rows);
-		  return rows;
+Ticket.prototype.loadAll = function(response){
+	connection.query('Select * from Ticket', function(err, rows) {
+		if (err){
+			console.log(err);
+		}else{
+			var tickets = [];
+			for(var i =0;i<rows.length;i++){
+				var ticket = new Ticket(
+					rows[i].id,
+					rows[i].phone_number,
+					rows[i].ip,
+					rows[i].created_at,
+					rows[i].tutor_id,
+					rows[i].status				
+				)
+				tickets.push(ticket);
+			}	
+			console.log(tickets);
+			response.send(tickets);
 	  }
 	});
 }
