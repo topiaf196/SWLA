@@ -1,5 +1,6 @@
 
 var Ticket = require("./Ticket");
+var Issue = require("./Issue");
 
 module.exports = function(app) {
 	app.get('/tickets/:id*',function(request,response){
@@ -11,8 +12,18 @@ module.exports = function(app) {
 		var ticket = new Ticket(request,request.params.id);
 		ticket.delete(request,response);
 	});
-	app.get('/tickets',function(request,response){
+	app.get('/tickets',function(request,response){		
 		var tickets = new Ticket(request).loadAll(request,response);
+	});
+	app.post('/tickets/:id*/issues',function(request,response){
+		var ticket = new Ticket(request,request.params.id);
+		var issue = new Issue(		
+			request.params.id,
+			null,
+			request.body.category,
+			request.body.description
+		);
+		issue.create(ticket,request,response);
 	});
 	app.post('/tickets',function(request,response){
 		var ticket = new Ticket(

@@ -12,9 +12,11 @@ Create Table Tutor(
     l_name VARCHAR(40)
 );
 Create Table Issue(
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    ticket_id VARCHAR(36) NOT NULL,
+    issue_Nbr MEDIUMINT(3) NOT NULL,
     category VARCHAR(100) NOT NULL,
-    description VARCHAR(1000)
+    description VARCHAR(1000),
+    PRIMARY KEY (ticket_id, issue_Nbr)
 );
 Create Table BlockedIP(
     ip VARCHAR(45) NOT NULL PRIMARY KEY,

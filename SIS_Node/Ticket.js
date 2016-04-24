@@ -1,11 +1,15 @@
 var connection = require("./swlaDb.js");
 var uuid = require('node-uuid');
+var Issue = require("./Issue");
 
 function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus){
 	if(request==null){
 		this.href = "";
 	}else{
-		this.href  = request.get('host')+request.originalUrl+"/"+id;
+		this.href  = request.get('host').concat(request.originalUrl);
+		if(request.params.id==null){
+			this.href  = this.href.concat("/").concat(id);
+		}
 	}
     this.id  = id;
     this.phone_number  = phone_number;
@@ -13,6 +17,7 @@ function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus){
     this.created_at  = created_at;
     this.tutor_id  = tutor_id;
     this.ticketStatus  = ticketStatus;
+	this.issues = [];
 }
 
 Ticket.prototype.load = function(request,response){
@@ -22,13 +27,23 @@ Ticket.prototype.delete = function(request,response){
 	var values = {
 		id:this.id
 	};
-	var query = connection.query('Delete from Ticket where ?',values, function(err, rows) {		
-	  if (err){
-		response.status(500).send("Fatal Error");
-		console.log(err);
-	  }else{
-		  response.send("Deleted Succesfully");
-	  }
+	var query = connection.query('Delete from Ticket where ?',values, function(err) {		
+		if (err){
+			response.status(500).send("Fatal Error");
+			console.log(err);
+		}else{
+			var valuesIssue = {
+				ticket_id:this.id
+			};
+			var queryIssue = connection.query('Delete from Issue where ?',values, function(err) {		
+			  if (err){
+				response.status(500).send("Fatal Error");
+				console.log(err);
+			  }else{
+				  response.send("Deleted Succesfully");
+			  }
+			});	
+		}
 	});
 }
 
@@ -50,12 +65,43 @@ function loadData(ticket,request,response){
 			rows[0].tutor_id,
 			rows[0].status				
 		)
-		response.send(ticket);
+		loadIssues(ticket,function(){
+			response.send(ticket);
+		});
 	  }else{
 			response.status(500).send("Fatal Error");
 			console.log(err);
 	  }
 	});
+}
+var loadIssues =function(ticket,callback){
+	var values = {
+		ticket_id:ticket.id
+	};
+	var query = connection.query('SELECT * from Issue where ?',values, function(err, rows) {
+	  if (err){
+		response.status(500).send("Fatal Error");
+		console.log(err);
+	  }else{
+			var issues = [];
+			for(var i =0;i<rows.length;i++){
+				var issue = new Issue(
+					rows[i].ticket_id,
+					rows[i].issue_Nbr,
+					rows[i].category,
+					rows[i].description
+				);
+				issues.push(issue);
+			}
+			console.log("adding issues");
+			ticket.issues = issues;
+	  }
+	  callback();
+	});
+}
+
+Ticket.prototype.createIssue = function(ticket,request,response){
+	
 }
 
 Ticket.prototype.create = function(request,response){
@@ -135,26 +181,38 @@ Ticket.prototype.update = function(request,response){
 }
 
 Ticket.prototype.loadAll = function(request,response){
-	connection.query('Select * from Ticket', function(err, rows) {
+	var query = connection.query('Select * from Ticket', function(err, rows) {
 		if (err){
 			console.log(err);
 		}else{
-			var tickets = [];
-			for(var i =0;i<rows.length;i++){
-				var ticket = new Ticket(
-					request,
-					rows[i].id,
-					rows[i].phone_number,
-					rows[i].ip,
-					rows[i].created_at,
-					rows[i].tutor_id,
-					rows[i].status				
-				)
-				tickets.push(ticket);
-			}	
-			console.log(tickets);
-			response.send(tickets);
-	  }
+			var tickets = [];			
+			var buildTicket = function(i){
+				if(i<rows.length){
+					var ticket = new Ticket(
+						request,
+						rows[i].id,
+						rows[i].phone_number,
+						rows[i].ip,
+						rows[i].created_at,
+						rows[i].tutor_id,
+						rows[i].status				
+					)
+					console.log("loading issues");
+					
+					loadIssues(ticket,function(){
+						console.log("responding");
+						tickets.push(ticket);
+						buildTicket(i+1)
+					});
+				}else{					
+					response.send(tickets);
+				}
+			}
+			buildTicket(0);
+		}
 	});
 }
+
+
+
 module.exports = Ticket;

@@ -1,6 +1,8 @@
 var express = require("express");
+var cors = require('cors')
 var app = express();
 app.use(require('body-parser').json());
+app.use(cors());
 var ticketController = require("./TicketController")(app);
 
 app.get('/',function(request,response){
