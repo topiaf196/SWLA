@@ -1,10 +1,12 @@
 
 var Ticket = require("./Ticket");
 var Issue = require("./Issue");
+var BlockedIP = require("./BlockedIP");
 
 module.exports = function(app) {
 	app.get('/tickets/:id*',function(request,response){
 		var ticket = new Ticket(request,request.params.id);
+		
 		ticket.load(request,response);
 		
 	});
@@ -33,9 +35,11 @@ module.exports = function(app) {
 			request.body.ip,
 			request.body.created_at,
 			request.body.tutor_id,
-			request.body.ticketStatus
+			request.body.ticketStatus,
+			request.body.comment
 		);
-		ticket.create(request,response);
+		
+		new BlockedIP().checkIP(ticket,request,response);
 	});
 	app.post('/tickets/:id*',function(request,response){
 		var ticket = new Ticket(
@@ -45,7 +49,8 @@ module.exports = function(app) {
 			request.body.ip,
 			request.body.created_at,
 			request.body.tutor_id,
-			request.body.ticketStatus
+			request.body.ticketStatus,
+			request.body.comment
 		);
 		ticket.update(request,response);
 	});

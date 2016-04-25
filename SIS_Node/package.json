@@ -15,6 +15,7 @@
 		"mysql":"*",
 		"body-parser":"*",
 		"node-uuid":"*",
-		"cors":"*"
+		"cors":"*",
+		"bcrypt":"*"
 	}
 }

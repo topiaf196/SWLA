@@ -1,12 +1,13 @@
 var connection = require("./swlaDb.js");
 var uuid = require('node-uuid');
 var Issue = require("./Issue");
+var BlockedIP = require("./BlockedIP");
 
-function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus){
+function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus,comment){
 	if(request==null){
 		this.href = "";
 	}else{
-		this.href  = request.get('host').concat(request.originalUrl);
+		this.href  = request.get('host').concat(request.originalUrl).replace(/\/$/, "");
 		if(request.params.id==null){
 			this.href  = this.href.concat("/").concat(id);
 		}
@@ -17,6 +18,8 @@ function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus){
     this.created_at  = created_at;
     this.tutor_id  = tutor_id;
     this.ticketStatus  = ticketStatus;
+    this.comment  = comment;
+    this.issuesHref  = this.href.concat("/issues");
 	this.issues = [];
 }
 
@@ -35,7 +38,7 @@ Ticket.prototype.delete = function(request,response){
 			var valuesIssue = {
 				ticket_id:this.id
 			};
-			var queryIssue = connection.query('Delete from Issue where ?',values, function(err) {		
+			var queryIssue = connection.query('Delete from Issue where ?',valuesIssue, function(err) {		
 			  if (err){
 				response.status(500).send("Fatal Error");
 				console.log(err);
@@ -63,7 +66,8 @@ function loadData(ticket,request,response){
 			rows[0].ip,
 			rows[0].created_at,
 			rows[0].tutor_id,
-			rows[0].status				
+			rows[0].status,
+			rows[0].comment				
 		)
 		loadIssues(ticket,function(){
 			response.send(ticket);
@@ -93,45 +97,66 @@ var loadIssues =function(ticket,callback){
 				);
 				issues.push(issue);
 			}
-			console.log("adding issues");
 			ticket.issues = issues;
 	  }
 	  callback();
 	});
 }
 
-Ticket.prototype.createIssue = function(ticket,request,response){
-	
+var checkIp = function(ticket,request,response,next){
+	var query = connection.query('Select count(0) as ticketCount from Ticket where DATE_SUB(NOW(), INTERVAL 1 HOUR) < created_at', function(err,rows) {
+		if (err){
+			response.status(500).send("Fatal Error");
+			console.log(err);
+		}else{
+			if(rows[0].ticketCount >20){
+				console.log("blocked IP: "+ticket.ip);
+				new BlockedIP().create(ticket,request,response,blockedResp);
+			}else{
+				next(ticket,request,response);
+			}
+		}
+	});
+}
+var blockedResp = function(request,response){
+	response.status(403).send("IP is blocked due to spam");
 }
 
-Ticket.prototype.create = function(request,response){
-		this.id = uuid.v1();
+Ticket.prototype.create = function(request,response){	
+	checkIp(this,request,response,insertTicket);
+}
+var insertTicket = function(ticket,request,response){
+	ticket.id = uuid.v1();
 	var values = {
-		id:this.id
+		id:ticket.id
 	};
-	if(this.phone_number!=null){
-		values['phone_number'] = this.phone_number;
+	if(ticket.phone_number!=null){
+		values['phone_number'] = ticket.phone_number;
 	}
-	if(this.phone_number!=null){
-		values['ip'] = this.ip;
+	if(ticket.phone_number!=null){
+		values['ip'] = ticket.ip;
 	}
-	if(this.tutor_id!=null){
-		values['tutor_id'] = this.tutor_id;
+	if(ticket.tutor_id!=null){
+		values['tutor_id'] = ticket.tutor_id;
 	}
-	if(this.ticketStatus==null){
+	if(ticket.ticketStatus==null){
 		values['status'] = 'OPEN';
 	}else{
-		values['status'] = this.ticketStatus;
+		values['status'] = ticket.ticketStatus;
+	}
+	if(ticket.comment!=null){
+		values['comment'] = ticket.comment;
 	}
 	var query = connection.query('Insert Into Ticket Set created_at = now(), ?',values, function(err) {
 		if (err){
 			response.status(500).send("Fatal Error");
 			console.log(err);
+		}else{
+			response.status(201);
+			response.location(request.get('host')+request.originalUrl+"/"+ticket.id);
+			loadData(ticket,request,response);	
 		}
 	});
-	response.status(201);
-	response.location(request.get('host')+request.originalUrl+"/"+this.id);
-	loadData(this,request,response);
 }
 
 Ticket.prototype.update = function(request,response){
@@ -157,6 +182,10 @@ Ticket.prototype.update = function(request,response){
 	if(this.ticketStatus!=null){
 		updateFields.push("status = ? ");
 		params.push(this.ticketStatus);
+	}
+	if(this.comment!=null){
+		updateFields.push("comment = ? ");
+		params.push(this.comment);
 	}
 	if(updateFields.length == 0){
 		return;
@@ -195,12 +224,11 @@ Ticket.prototype.loadAll = function(request,response){
 						rows[i].ip,
 						rows[i].created_at,
 						rows[i].tutor_id,
-						rows[i].status				
+						rows[i].status,
+						rows[i].comment					
 					)
-					console.log("loading issues");
 					
 					loadIssues(ticket,function(){
-						console.log("responding");
 						tickets.push(ticket);
 						buildTicket(i+1)
 					});
