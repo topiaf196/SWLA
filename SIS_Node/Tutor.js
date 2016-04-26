@@ -7,10 +7,7 @@ function Tutor(request,id,f_name,l_name,user_name,password,is_admin){
 	if(request==null){
 		this.href = "";
 	}else{
-		this.href  = request.get('host').concat(request.originalUrl).replace(/\/$/, "");;
-		if(request.params.id==null){
-			this.href  = this.href.concat("/").concat(id);
-		}
+		this.href  = request.get('host').concat("/tutors/").concat(id);
 	}
     this.id  = id;
     this.f_name  = f_name;
@@ -130,7 +127,7 @@ var loadTickets =function(tutor,request,callback){
 						rows[i].created_at,
 						rows[i].tutor_id,
 						rows[i].status				
-					)
+					);
 					
 					loadIssues(ticket,function(){
 						ticket.href = request.get('host').concat("/tickets/").concat(ticket.id);

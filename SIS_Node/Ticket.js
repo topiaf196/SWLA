@@ -7,10 +7,7 @@ function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus,comm
 	if(request==null){
 		this.href = "";
 	}else{
-		this.href  = request.get('host').concat(request.originalUrl).replace(/\/$/, "");
-		if(request.params.id==null){
-			this.href  = this.href.concat("/").concat(id);
-		}
+		this.href  = request.get('host').concat("/tickets/").concat(id);		
 	}
     this.id  = id;
     this.phone_number  = phone_number;
@@ -20,6 +17,7 @@ function Ticket(request,id,phone_number,ip,created_at,tutor_id,ticketStatus,comm
     this.ticketStatus  = ticketStatus;
     this.comment  = comment;
     this.issuesHref  = this.href.concat("/issues");
+	this.tutor = null;
 	this.issues = [];
 }
 
@@ -51,14 +49,11 @@ Ticket.prototype.delete = function(request,response){
 }
 
 function loadData(ticket,request,response){
-	var values = {
-		id:ticket.id
-	};
-	var query = connection.query('SELECT * from Ticket where ?',values, function(err, rows) {
-	  if (!err){
-		  if(rows.length==0){
+	var query = connection.query('SELECT Ticket.id,phone_number,ip,created_at,tutor_id,status,comment,f_name,l_name,user_name,is_admin from Ticket Left Outer Join Tutor On Ticket.tutor_id = Tutor.id where Ticket.id = ?',ticket.id, function(err, rows) {
+	 if (!err){
+		if(rows.length==0){
 			response.status(404).send("Not Found");
-		  }
+		}
 		var ticket = new Ticket(
 			request,
 			rows[0].id,
@@ -67,8 +62,19 @@ function loadData(ticket,request,response){
 			rows[0].created_at,
 			rows[0].tutor_id,
 			rows[0].status,
-			rows[0].comment				
+			rows[0].comment
 		)
+		if(ticket.tutor_id != null){		
+			var tutor = {
+				href:request.get('host').concat("/tutors/").concat(rows[0].ticket_id),
+				id:rows[0].ticket_id,
+				f_name:rows[0].f_name,
+				l_name:rows[0].l_name,
+				user_name:rows[0].user_name,
+				is_admin:rows[0].is_admin		
+			};
+			ticket.tutor = tutor;
+		}
 		loadIssues(ticket,function(){
 			response.send(ticket);
 		});
@@ -210,7 +216,7 @@ Ticket.prototype.update = function(request,response){
 }
 
 Ticket.prototype.loadAll = function(request,response){
-	var query = connection.query('Select * from Ticket', function(err, rows) {
+	var query = connection.query('SELECT Ticket.id,phone_number,ip,created_at,tutor_id,status,comment,f_name,l_name,user_name,is_admin from Ticket Left Outer Join Tutor On Ticket.tutor_id = Tutor.id', function(err, rows) {
 		if (err){
 			console.log(err);
 		}else{
@@ -226,8 +232,18 @@ Ticket.prototype.loadAll = function(request,response){
 						rows[i].tutor_id,
 						rows[i].status,
 						rows[i].comment					
-					)
-					
+					)					
+					if(ticket.tutor_id!=null){			
+						var tutor = {
+							href:request.get('host').concat("/tutors/").concat(rows[i].tutor_id),
+							id:rows[i].tutor_id,
+							f_name:rows[i].f_name,
+							l_name:rows[i].l_name,
+							user_name:rows[i].user_name,
+							is_admin:rows[i].is_admin		
+						};
+						ticket.tutor = tutor;
+					}
 					loadIssues(ticket,function(){
 						tickets.push(ticket);
 						buildTicket(i+1)
